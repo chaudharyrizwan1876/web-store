@@ -1,0 +1,30 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env
+.env
+.env.*
+
+# Build
+dist/
+build/
+
+# Uploads (local only)
+backend-vite/uploads/
+
+# Local Mongo data (DO NOT PUSH)
+mongodb/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+
+# Random images in root
+*.png
+*.jpg
+*.jpeg
+*.webp
