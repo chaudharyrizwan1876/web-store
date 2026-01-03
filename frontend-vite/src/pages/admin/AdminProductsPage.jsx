@@ -160,7 +160,18 @@ const AdminProductsPage = () => {
       method: "POST",
       body: fd,
     });
-    return res?.url || "";
+
+    // ✅ robust extraction
+    const url =
+      res?.url ||
+      res?.secure_url ||
+      res?.imageUrl ||
+      res?.data?.url ||
+      res?.data?.secure_url ||
+      "";
+
+    if (!url) throw new Error("Upload succeeded but no URL returned");
+    return url;
   };
 
   const parseUrls = (txt) =>
@@ -185,7 +196,7 @@ const AdminProductsPage = () => {
       if (files.length > 0) {
         setUploading(true);
 
-        // max 6 files (UI says so)
+        // max 6 files
         const toUpload = files.slice(0, 6);
 
         // sequential upload (simple + stable)
@@ -201,7 +212,7 @@ const AdminProductsPage = () => {
       const existingUrls = parseUrls(form.imagesText || "");
       const merged = [...existingUrls, ...uploadedUrls];
 
-      // ✅ Step C: send product data (no local uploads)
+      // ✅ Step C: send product data
       const fd = new FormData();
       fd.append("name", form.name.trim());
       fd.append("price", String(Number(form.price)));
@@ -449,13 +460,22 @@ const AdminProductsPage = () => {
                   />
                 </div>
 
+                {/* ✅ THIS IS THE UPLOAD FIELD (it should show) */}
                 <div style={{ gridColumn: "1 / -1" }}>
                   <div style={label}>Upload Images (max 6)</div>
                   <input
                     type="file"
                     multiple
                     accept="image/*"
-                    onChange={(e) => setFiles(Array.from(e.target.files || []))}
+                    onChange={(e) => {
+                      const picked = Array.from(e.target.files || []);
+                      if (picked.length > 6) {
+                        alert("Max 6 images allowed. Please select up to 6.");
+                        setFiles(picked.slice(0, 6));
+                      } else {
+                        setFiles(picked);
+                      }
+                    }}
                     style={{ ...inputStyle, paddingTop: "8px", height: "46px" }}
                   />
                   {files.length > 0 && (
