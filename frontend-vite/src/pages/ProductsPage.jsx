@@ -1,4 +1,4 @@
-// ====================== frontend-vite/src/pages/ProductsPage.jsx (UPDATED: category + search + not-found) ======================
+// ====================== frontend-vite/src/pages/ProductsPage.jsx (UPDATED: pagination via existing UI) ======================
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { apiFetch } from "../utils/api";
@@ -44,6 +44,10 @@ const ProductsPage = () => {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
+  // ✅ pagination (controlled here)
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(9); // ✅ default 9
+
   // ✅ Read category + search from URL
   const selectedCategory = useMemo(() => {
     const sp = new URLSearchParams(location.search);
@@ -84,33 +88,51 @@ const ProductsPage = () => {
     }
   }, [buildProductsUrl]);
 
-  // ✅ load products on mount + whenever URL category changes
   useEffect(() => {
     load();
   }, [load]);
 
-  // ✅ search matcher (partial + tokens)
+  // ✅ search matcher
   const matchesSearch = useCallback((name, query) => {
     const n = String(name || "").toLowerCase();
     const q = String(query || "").toLowerCase().trim();
     if (!q) return true;
-
-    // full phrase
     if (n.includes(q)) return true;
 
-    // token match (e.g. "computer system" -> matches "system")
     const tokens = q.split(/\s+/).filter(Boolean);
     return tokens.some((t) => n.includes(t));
   }, []);
 
-  // ✅ Filtered products (category already filtered by backend; search here)
   const filteredProducts = useMemo(() => {
     return (products || []).filter((p) => matchesSearch(p?.name, searchText));
   }, [products, searchText, matchesSearch]);
 
-  // ✅ map backend products -> List component shape
+  // ✅ reset page when filters/search change
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategory, searchText]);
+
+  // ✅ reset page when pageSize changes
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize]);
+
+  const totalCount = filteredProducts.length;
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  // clamp page
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
+
+  const pageProducts = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return (filteredProducts || []).slice(start, start + pageSize);
+  }, [filteredProducts, page, pageSize]);
+
+  // ✅ map paginated products -> List
   const listItems = useMemo(() => {
-    return (filteredProducts || []).map((p) => ({
+    return (pageProducts || []).map((p) => ({
       id: p._id,
       title: p.name,
       price: p.price,
@@ -120,11 +142,11 @@ const ProductsPage = () => {
       desc: p.description || "",
       image: p.images && p.images[0] ? p.images[0] : prodHeadphones,
     }));
-  }, [filteredProducts]);
+  }, [pageProducts]);
 
-  // ✅ map backend products -> Grid component shape
+  // ✅ map paginated products -> Grid
   const gridItems = useMemo(() => {
-    return (filteredProducts || []).slice(0, 9).map((p) => ({
+    return (pageProducts || []).map((p) => ({
       id: p._id,
       title: p.name,
       price: p.price,
@@ -133,12 +155,12 @@ const ProductsPage = () => {
       short: p.category || "Product",
       image: p.images && p.images[0] ? p.images[0] : gridPhoneRed,
     }));
-  }, [filteredProducts]);
+  }, [pageProducts]);
 
-  const totalText = loading ? "Loading..." : `${listItems.length} items in`;
+  const totalText = loading ? "Loading..." : `${totalCount} items in`;
   const categoryText = selectedCategory ? selectedCategory : "Store";
 
-  // ✅ Admin actions
+  // ✅ Admin actions (same as before)
   const openCreate = () => {
     setEditing(null);
     setForm(emptyForm);
@@ -330,19 +352,16 @@ const ProductsPage = () => {
             onChangeView={setView}
           />
 
-          {/* ✅ Search hint (optional, small) */}
           {searchText && !loading && !error && (
             <div style={{ marginTop: 10, fontSize: 13, opacity: 0.75 }}>
               Search: <b>{searchText}</b>
             </div>
           )}
 
-          {/* ✅ loading/error messages */}
           {loading && <p style={{ padding: "16px 0", margin: 0 }}>Loading products...</p>}
           {!loading && error && <p style={{ padding: "16px 0", margin: 0, color: "red" }}>{error}</p>}
 
-          {/* ✅ Not found */}
-          {!loading && !error && listItems.length === 0 && (
+          {!loading && !error && totalCount === 0 && (
             <div
               style={{
                 marginTop: 14,
@@ -359,22 +378,36 @@ const ProductsPage = () => {
             </div>
           )}
 
-          {!loading && !error && listItems.length > 0 && (
+          {!loading && !error && totalCount > 0 && (
             <div style={{ marginTop: "14px" }}>
               {view === "grid" ? (
                 <>
                   <GridFilterBar />
-                  <ProductsGrid items={gridItems} />
+                  <ProductsGrid
+                    items={gridItems}
+                    page={page}
+                    setPage={setPage}
+                    pageCount={pageCount}
+                    pageSize={pageSize}
+                    setPageSize={setPageSize}
+                  />
                 </>
               ) : (
-                <ProductsList items={listItems} />
+                <ProductsList
+                  items={listItems}
+                  page={page}
+                  setPage={setPage}
+                  pageCount={pageCount}
+                  pageSize={pageSize}
+                  setPageSize={setPageSize}
+                />
               )}
             </div>
           )}
         </div>
       </div>
 
-      {/* ✅ Create/Edit Modal */}
+      {/* ✅ Create/Edit Modal (same as your existing code) */}
       {openModal && showAdminPanel && (
         <div onClick={closeModal} style={modal.backdrop}>
           <div onClick={(e) => e.stopPropagation()} style={modal.card}>
@@ -401,11 +434,7 @@ const ProductsPage = () => {
                 </Field>
 
                 <Field label="Category">
-                  <input
-                    value={form.category}
-                    onChange={(e) => onChange("category", e.target.value)}
-                    style={modal.input}
-                  />
+                  <input value={form.category} onChange={(e) => onChange("category", e.target.value)} style={modal.input} />
                 </Field>
 
                 <Field label="Stock">

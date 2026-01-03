@@ -1,13 +1,17 @@
+// frontend-vite/src/components/products/PaginationBar.jsx
 import React from "react";
 
 const PaginationBar = ({
   page = 1,
   setPage = () => {},
-  pageCount = 3,
-  pageSize = 10,
+  pageCount = 1,
+  pageSize = 9,
   setPageSize = () => {},
   width = "920px",
 }) => {
+  const canPrev = page > 1;
+  const canNext = page < pageCount;
+
   return (
     <div
       style={{
@@ -31,21 +35,23 @@ const PaginationBar = ({
           background: "#fff",
         }}
       >
-        <option value={10}>Show 10</option>
-        <option value={20}>Show 20</option>
-        <option value={50}>Show 50</option>
+        <option value={9}>Show 9</option>
+        <option value={18}>Show 18</option>
+        <option value={27}>Show 27</option>
       </select>
 
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={!canPrev}
           style={{
             width: "34px",
             height: "34px",
             border: "1px solid #E5E7EB",
             borderRadius: "8px",
             background: "#fff",
-            cursor: "pointer",
+            cursor: canPrev ? "pointer" : "not-allowed",
+            opacity: canPrev ? 1 : 0.45,
           }}
         >
           ‹
@@ -57,14 +63,16 @@ const PaginationBar = ({
             <button
               key={n}
               onClick={() => setPage(n)}
+              disabled={n === page}
               style={{
                 width: "34px",
                 height: "34px",
                 border: "1px solid #E5E7EB",
                 borderRadius: "8px",
                 background: page === n ? "#F3F4F6" : "#fff",
-                cursor: "pointer",
+                cursor: n === page ? "default" : "pointer",
                 fontWeight: page === n ? 700 : 500,
+                opacity: n === page ? 1 : 1,
               }}
             >
               {n}
@@ -74,13 +82,15 @@ const PaginationBar = ({
 
         <button
           onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+          disabled={!canNext}
           style={{
             width: "34px",
             height: "34px",
             border: "1px solid #E5E7EB",
             borderRadius: "8px",
             background: "#fff",
-            cursor: "pointer",
+            cursor: canNext ? "pointer" : "not-allowed",
+            opacity: canNext ? 1 : 0.45,
           }}
         >
           ›

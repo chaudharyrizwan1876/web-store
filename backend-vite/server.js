@@ -1,4 +1,4 @@
-// ====================== backend-vite/server.js (UPDATED: ENV-based CORS) ======================
+// ====================== backend-vite/server.js (UPDATED: safer CORS + clean logs) ======================
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -38,7 +38,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // =======================
-// ✅ CORS (ENV-based)
+// ✅ CORS (ENV-based, safer for Vercel preview)
 // =======================
 const allowedOrigins = [
   process.env.FRONTEND_URL, // production frontend (Vercel)
@@ -51,9 +51,12 @@ app.use(
       // allow Postman / server-to-server requests (no origin)
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+      const ok =
+        allowedOrigins.includes(origin) ||
+        // ✅ allow Vercel preview domains if they share the same base as FRONTEND_URL
+        (process.env.FRONTEND_URL && origin.startsWith(process.env.FRONTEND_URL));
+
+      if (ok) return callback(null, true);
 
       return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
@@ -122,15 +125,6 @@ const PORT = process.env.PORT || 5000;
 /**
  * ✅ CRITICAL JOB: Auto-cancel expired UNPAID orders + restore stock
  * Runs every 5 minutes.
- *
- * Cancels orders where:
- * - paymentStatus === "UNPAID"
- * - status === "PLACED"
- * - reservedUntil exists and is expired
- *
- * Then:
- * - restores product stock for each item
- * - marks order status CANCELLED
  */
 const startExpiredOrderCleanupJob = () => {
   const intervalMs = 5 * 60 * 1000;
@@ -188,9 +182,7 @@ const startExpiredOrderCleanupJob = () => {
 // connect DB then start server
 connectDB().then(() => {
   app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-
-    // ✅ start job after server starts
+    console.log(`Server running on port ${PORT}`);
     startExpiredOrderCleanupJob();
   });
 });

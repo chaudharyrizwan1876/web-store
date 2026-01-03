@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+// frontend-vite/src/components/products/ProductsGrid.jsx
+import React from "react";
 import ProductGridCard from "./ProductGridCard";
 import PaginationBar from "./PaginationBar";
 
-const ProductsGrid = ({ items = [] }) => {
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
+const ProductsGrid = ({
+  items = [],
+  page,
+  setPage,
+  pageCount,
+  pageSize,
+  setPageSize,
+}) => {
   return (
     <div style={{ width: "920px" }}>
       <div
@@ -16,16 +21,15 @@ const ProductsGrid = ({ items = [] }) => {
           rowGap: "20px",
         }}
       >
-        {items.slice(0, 9).map((item) => (
+        {items.map((item) => (
           <ProductGridCard key={item.id} item={item} />
         ))}
       </div>
 
-      {/* ✅ Same pagination as list view */}
       <PaginationBar
         page={page}
         setPage={setPage}
-        pageCount={3}
+        pageCount={pageCount}
         pageSize={pageSize}
         setPageSize={setPageSize}
         width="920px"
@@ -35,4 +39,3 @@ const ProductsGrid = ({ items = [] }) => {
 };
 
 export default ProductsGrid;
-``

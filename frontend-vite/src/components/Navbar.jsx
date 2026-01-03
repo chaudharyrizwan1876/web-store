@@ -172,7 +172,7 @@ const Navbar = () => {
 
                   <button
                     type="button"
-                    onClick={() => go("/products")}
+                    onClick={() => go("/admin/products")}
                     style={styles.dropdownBtn}
                   >
                     Manage Products

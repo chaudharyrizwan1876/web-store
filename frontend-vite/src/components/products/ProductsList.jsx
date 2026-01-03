@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+// frontend-vite/src/components/products/ProductsList.jsx
+import React from "react";
 import ProductListItem from "./ProductListItem";
 import PaginationBar from "./PaginationBar";
 
-const ProductsList = ({ items = [] }) => {
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
+const ProductsList = ({
+  items = [],
+  page,
+  setPage,
+  pageCount,
+  pageSize,
+  setPageSize,
+}) => {
   return (
     <div style={{ width: "920px", height: "1430px", display: "flex", flexDirection: "column" }}>
       <div style={{ flex: 1, overflowY: "auto", paddingRight: "6px" }}>
@@ -17,7 +22,7 @@ const ProductsList = ({ items = [] }) => {
       <PaginationBar
         page={page}
         setPage={setPage}
-        pageCount={3}
+        pageCount={pageCount}
         pageSize={pageSize}
         setPageSize={setPageSize}
         width="920px"

@@ -23,8 +23,4 @@ mongodb/
 .DS_Store
 Thumbs.db
 
-# Random images in root
-*.png
-*.jpg
-*.jpeg
-*.webp
+
