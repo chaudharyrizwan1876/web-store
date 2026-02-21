@@ -1,32 +1,48 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
-const BreadcrumbBar = () => {
-  const crumbs = ["Home", "Clothings", "Men’s wear", "Summer clothing"];
+const BreadcrumbBar = ({ crumbs = [] }) => {
+  const navigate = useNavigate();
+
+  const handleClick = (item, index) => {
+    // last item clickable nahi hoga
+    if (index === crumbs.length - 1) return;
+
+    if (index === 0) {
+      // Home
+      navigate("/");
+    } else {
+      // Category
+      const category = crumbs[1];
+      navigate(`/products?category=${encodeURIComponent(category)}`);
+    }
+  };
 
   return (
     <div
       style={{
-        width: "411px",
-        height: "24px",
+        width: "auto",
+        minHeight: "24px",
         marginTop: "20px",
         display: "flex",
         alignItems: "center",
         fontSize: "12px",
         lineHeight: "24px",
-        color: "#8A8A8A",
         gap: "6px",
+        flexWrap: "wrap",
       }}
     >
       {crumbs.map((item, index) => {
         const isLast = index === crumbs.length - 1;
 
         return (
-          <React.Fragment key={item}>
+          <React.Fragment key={index}>
             <span
+              onClick={() => handleClick(item, index)}
               style={{
                 cursor: isLast ? "default" : "pointer",
-                color: isLast ? "#111827" : "#8A8A8A",
-                fontWeight: isLast ? 500 : 400,
+                color: isLast ? "#111827" : "#6B7280",
+                fontWeight: isLast ? 600 : 400,
                 whiteSpace: "nowrap",
               }}
             >

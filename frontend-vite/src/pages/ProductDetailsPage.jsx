@@ -55,7 +55,13 @@ const ProductDetailsPage = () => {
 
   return (
     <div style={{ maxWidth: "1180px", margin: "0 auto" }}>
-      <BreadcrumbBar />
+      <BreadcrumbBar
+  crumbs={
+    product
+      ? ["Home", product.category || "Product", product.name]
+      : ["Home"]
+  }
+/>
 
       {loading && <p style={{ padding: "16px 0", margin: 0 }}>Loading product...</p>}
 
