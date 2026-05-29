@@ -489,12 +489,12 @@ const AdminProductsPage = () => {
                 </div>
 
                 <div style={{ gridColumn: "1 / -1" }}>
-                  <div style={label}>Description</div>
+                  <div style={label}>Description (3-4 lines)</div>
                   <textarea
                     value={form.description}
                     onChange={(e) => onChange("description", e.target.value)}
-                    style={{ ...inputStyle, height: "110px", paddingTop: "10px" }}
-                    placeholder="Product description..."
+                    style={{ ...inputStyle, height: "180px", paddingTop: "10px", resize: "vertical" }}
+                    placeholder="Enter product description... (3-4 lines recommended)"
                   />
                 </div>
               </div>

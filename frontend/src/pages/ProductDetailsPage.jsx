@@ -75,22 +75,22 @@ const ProductDetailsPage = () => {
             <ProductDetailsTopSection product={product} />
           </div>
 
-          <div style={{ marginTop: "20px", display: "flex", gap: "20px", alignItems: "flex-start" }}>
+          <div style={{ marginTop: "8px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
             <ProductDetailsTabsSection product={product} />
             {/* ✅ now backend suggestions */}
             <YouMayLike items={youMayLike} />
           </div>
 
-          <div style={{ marginTop: "20px" }}>
+          <div style={{ marginTop: "8px" }}>
             {/* ✅ now backend suggestions */}
             <RelatedProductsRow items={related} />
           </div>
 
-          <div style={{ marginTop: "18px" }}>
+          <div style={{ marginTop: "8px" }}>
             <SuperDiscountBanner />
           </div>
 
-          <div style={{ marginTop: "10px", color: "#6B7280", fontSize: "12px" }}>
+          <div style={{ marginTop: "8px", color: "#6B7280", fontSize: "12px" }}>
             Product ID: <span style={{ color: "#111827", fontWeight: 600 }}>{id}</span>
           </div>
         </>

@@ -62,21 +62,19 @@ const ProductDetailsTopSection = ({ product }) => {
   }, [mainPrice]);
 
   const detailsRows = useMemo(() => {
-    const category = product?.category || "Classic shoes";
-    const desc = product?.description || "Negotiable";
+    const category = product?.category || "NA";
+    const brand = product?.brand || "NA";
+    const stock = product?.stock !== undefined ? product.stock : "NA";
+    const price = product?.price ? `Rs ${product.price}` : "NA";
+    const oldPrice = product?.oldPrice ? `Rs ${product.oldPrice}` : "NA";
 
     return [
-      { k: "Price:", v: "Negotiable" },
-      { k: "Type:", v: category },
-      { k: "Material:", v: "Plastic material" },
-      { k: "Design:", v: "Modern nice" },
-      { k: "Customization:", v: "Customized logo and design custom packages" },
-      { k: "Protection:", v: "Refund Policy" },
-      { k: "Warranty:", v: "2 years full warranty" },
-    ].map((row) => {
-      if (row.k === "Price:") return { ...row, v: desc ? "Negotiable" : "Negotiable" };
-      return row;
-    });
+      { k: "Price:", v: price },
+      { k: "Old Price:", v: oldPrice },
+      { k: "Brand:", v: brand },
+      { k: "Category:", v: category },
+      { k: "Stock:", v: stock === "NA" ? "NA" : `${stock} pcs` },
+    ];
   }, [product]);
 
   const starCount = useMemo(() => {

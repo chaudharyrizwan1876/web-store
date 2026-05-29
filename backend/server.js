@@ -25,6 +25,9 @@ import adminDealRoutes from "./src/routes/admin.deal.routes.js";
 import adminOrderRoutes from "./src/routes/admin.order.routes.js";
 import adminProductRoutes from "./src/routes/admin.product.routes.js";
 
+// ✅ Inquiry routes
+import inquiryRoutes from "./src/routes/inquiry.routes.js";
+
 import { protect } from "./src/middleware/authMiddleware.js";
 
 // ✅ models for cleanup job
@@ -128,6 +131,9 @@ app.use("/api/payments", paymentRoutes);
 
 // ✅ Cloudinary upload endpoint
 app.use("/api/upload", uploadRoutes);
+
+// ✅ Supplier inquiry endpoint
+app.use("/api/supplier-inquiry", inquiryRoutes);
 
 /* =======================
    ADMIN ROUTES

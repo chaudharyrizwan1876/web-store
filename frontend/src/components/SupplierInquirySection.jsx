@@ -1,7 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
+import { apiFetch } from "../utils/api";
 import supplierBg from "../assets/images/supplier-bg.png";
 
 const SupplierInquirySection = () => {
+  const [form, setForm] = useState({
+    item: "",
+    details: "",
+    quantity: "",
+    unit: "Pcs",
+  });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
   const styles = {
     wrapper: {
       width: "100%",
@@ -128,6 +138,48 @@ const SupplierInquirySection = () => {
     },
   };
 
+  const onChange = (key, value) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSendInquiry = async () => {
+    if (!form.item.trim()) {
+      setMessage("Please enter what item you need");
+      return;
+    }
+    if (!form.quantity.trim()) {
+      setMessage("Please enter quantity");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setMessage("");
+
+      const res = await apiFetch("/api/supplier-inquiry", {
+        method: "POST",
+        body: {
+          item: form.item.trim(),
+          details: form.details.trim(),
+          quantity: form.quantity.trim(),
+          unit: form.unit,
+        },
+      });
+
+      if (res?.success) {
+        setMessage("✅ Inquiry sent successfully!");
+        setForm({ item: "", details: "", quantity: "", unit: "Pcs" });
+        setTimeout(() => setMessage(""), 3000);
+      } else {
+        setMessage(res?.error || "Failed to send inquiry");
+      }
+    } catch (err) {
+      setMessage(err?.message || "Error sending inquiry");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={styles.wrapper}>
       {/* LEFT TEXT */}
@@ -147,12 +199,37 @@ const SupplierInquirySection = () => {
       <div style={styles.card}>
         <h3 style={styles.cardTitle}>Send quote to suppliers</h3>
 
-        <input style={styles.input} type="text" placeholder="What item you need?" />
-        <textarea style={styles.textarea} placeholder="Type more details" />
+        <input
+          style={styles.input}
+          type="text"
+          placeholder="What item you need?"
+          value={form.item}
+          onChange={(e) => onChange("item", e.target.value)}
+          disabled={loading}
+        />
+        <textarea
+          style={styles.textarea}
+          placeholder="Type more details"
+          value={form.details}
+          onChange={(e) => onChange("details", e.target.value)}
+          disabled={loading}
+        />
 
         <div style={styles.row}>
-          <input style={styles.qtyInput} type="text" placeholder="Quantity" />
-          <select style={styles.select}>
+          <input
+            style={styles.qtyInput}
+            type="text"
+            placeholder="Quantity"
+            value={form.quantity}
+            onChange={(e) => onChange("quantity", e.target.value)}
+            disabled={loading}
+          />
+          <select
+            style={styles.select}
+            value={form.unit}
+            onChange={(e) => onChange("unit", e.target.value)}
+            disabled={loading}
+          >
             <option>Pcs</option>
             <option>Kg</option>
             <option>Box</option>
@@ -160,7 +237,30 @@ const SupplierInquirySection = () => {
           </select>
         </div>
 
-        <button style={styles.btn}>Send inquiry</button>
+        <button
+          onClick={handleSendInquiry}
+          disabled={loading}
+          style={{
+            ...styles.btn,
+            opacity: loading ? 0.6 : 1,
+            cursor: loading ? "not-allowed" : "pointer",
+          }}
+        >
+          {loading ? "Sending..." : "Send inquiry"}
+        </button>
+
+        {message && (
+          <div
+            style={{
+              marginTop: "10px",
+              fontSize: "13px",
+              color: message.includes("✅") ? "#16A34A" : "#DC2626",
+              fontWeight: 600,
+            }}
+          >
+            {message}
+          </div>
+        )}
       </div>
     </div>
   );
