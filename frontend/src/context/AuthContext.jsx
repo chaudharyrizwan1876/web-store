@@ -1,48 +1,90 @@
+// frontend/src/context/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const AuthContext = createContext(null);
 
-const TOKEN_KEY = "token";
+// ✅ Token memory mein rakho — XSS se protect
+// (localStorage ki jagah sessionStorage + memory use ho raha hai)
+let _memoryToken = null;
+
+export const tokenStore = {
+  set(token) {
+    _memoryToken = token;
+    try { sessionStorage.setItem("token", token); } catch (_) {}
+  },
+  get() {
+    if (_memoryToken) return _memoryToken;
+    try {
+      const t = sessionStorage.getItem("token");
+      if (t) { _memoryToken = t; return t; }
+    } catch (_) {}
+    // Purana localStorage migrate karo (ek baar)
+    try {
+      const t = localStorage.getItem("token");
+      if (t) {
+        _memoryToken = t;
+        sessionStorage.setItem("token", t);
+        localStorage.removeItem("token");
+        return t;
+      }
+    } catch (_) {}
+    return null;
+  },
+  clear() {
+    _memoryToken = null;
+    try { sessionStorage.removeItem("token"); } catch (_) {}
+    try { localStorage.removeItem("token"); } catch (_) {}
+  },
+};
+
 const USER_KEY = "user";
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || "");
+  // Token memory se lo (page reload pe sessionStorage fallback)
+  const [token, setToken] = useState(() => tokenStore.get() || "");
+
   const [user, setUser] = useState(() => {
-    const raw = localStorage.getItem(USER_KEY);
-    return raw ? JSON.parse(raw) : null;
+    try {
+      const raw = sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) { return null; }
   });
 
   const isAuthed = !!token;
-  const isAdmin = !!user?.isAdmin; // ✅ admin flag derived from stored user
+  const isAdmin = !!user?.isAdmin;
 
-  // ✅ central persist (professional: state is source of truth)
+  // Token sync — memory + sessionStorage
   useEffect(() => {
-    if (token) localStorage.setItem(TOKEN_KEY, token);
-    else localStorage.removeItem(TOKEN_KEY);
+    if (token) tokenStore.set(token);
+    else tokenStore.clear();
   }, [token]);
 
+  // User sync — sessionStorage mein rakho
   useEffect(() => {
-    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
-    else localStorage.removeItem(USER_KEY);
+    try {
+      if (user) {
+        sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+        localStorage.removeItem(USER_KEY); // purana saaf karo
+      } else {
+        sessionStorage.removeItem(USER_KEY);
+        localStorage.removeItem(USER_KEY);
+      }
+    } catch (_) {}
   }, [user]);
 
-  // ✅ flexible login:
-  // login({ token, user }) OR login(user, token)
+  // Login — do tarike kaam karta hai:
+  // login({ token, user })  ya  login(user, token)
   const login = (arg1, arg2) => {
-    // Case 1: login({ token, user })
     if (arg1 && typeof arg1 === "object" && arg1.token) {
       setToken(arg1.token);
       setUser(arg1.user || null);
       return;
     }
-
-    // Case 2: login(user, token)
     if (arg2) {
       setUser(arg1 || null);
       setToken(arg2);
       return;
     }
-
     console.warn("login() called without valid args");
   };
 
@@ -51,33 +93,29 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // ✅ Optional helper (useful in admin pages/components)
   const requireAdmin = () => isAuthed && isAdmin;
 
-  // ✅ Sync across tabs (storage event fires on other tabs)
+  // Tabs sync (doosre tab mein logout ho to is tab mein bhi ho)
   useEffect(() => {
     const onStorage = (e) => {
-      if (e.key === TOKEN_KEY) setToken(localStorage.getItem(TOKEN_KEY) || "");
+      if (e.key === "token") {
+        const t = sessionStorage.getItem("token") || "";
+        setToken(t);
+        _memoryToken = t || null;
+      }
       if (e.key === USER_KEY) {
-        const raw = localStorage.getItem(USER_KEY);
-        setUser(raw ? JSON.parse(raw) : null);
+        try {
+          const raw = sessionStorage.getItem(USER_KEY);
+          setUser(raw ? JSON.parse(raw) : null);
+        } catch (_) { setUser(null); }
       }
     };
-
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const value = useMemo(
-    () => ({
-      token,
-      user,
-      isAuthed,
-      isAdmin,      // ✅ exposed
-      login,
-      logout,
-      requireAdmin, // ✅ exposed
-    }),
+    () => ({ token, user, isAuthed, isAdmin, login, logout, requireAdmin }),
     [token, user, isAuthed, isAdmin]
   );
 
