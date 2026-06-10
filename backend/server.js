@@ -1,4 +1,3 @@
-// backend/server.js
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -21,14 +20,10 @@ import adminDealRoutes from "./src/routes/admin.deal.routes.js";
 import adminOrderRoutes from "./src/routes/admin.order.routes.js";
 import adminProductRoutes from "./src/routes/admin.product.routes.js";
 import inquiryRoutes from "./src/routes/inquiry.routes.js";
+import userRoutes from "./src/routes/user.routes.js";
 
 import { protect } from "./src/middleware/authMiddleware.js";
-
-// Rate limiter middleware
-import {
-  globalLimiter,
-  authLimiter,
-} from "./src/middleware/rateLimiter.js";
+import { globalLimiter, authLimiter } from "./src/middleware/rateLimiter.js";
 
 import Order from "./src/models/Order.js";
 import Product from "./src/models/Product.js";
@@ -40,9 +35,7 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ======================
-// ✅ CORS CONFIG (single, clean — no duplicate)
-// ======================
+// ✅ CORS CONFIG
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
@@ -53,24 +46,16 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow Postman / server-to-server (no origin header)
       if (!origin) return callback(null, true);
-
-      // Exact match
       if (allowedOrigins.includes(origin)) return callback(null, true);
-
-      // Vercel preview domains
       if (/\.vercel\.app$/.test(origin)) return callback(null, true);
-
       return callback(new Error(`CORS blocked: ${origin}`));
     },
     credentials: true,
   })
 );
 
-// ======================
-// ✅ Global rate limiter (all routes)
-// ======================
+// ✅ Global rate limiter
 app.use(globalLimiter);
 
 app.use(morgan("dev"));
@@ -88,10 +73,8 @@ app.get("/api/health", (req, res) =>
   res.json({ status: "ok", message: "Backend server is running" })
 );
 
-// ======================
-// USER ROUTES
-// ======================
-app.use("/api/auth", authLimiter, authRoutes);  // stricter limiter on auth
+// ── ROUTES ──────────────────────────────────────
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/deals", dealRoutes);
 app.use("/api/cart", cartRoutes);
@@ -99,10 +82,9 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/supplier-inquiry", inquiryRoutes);
+app.use("/api/user", userRoutes);          // ✅ Profile routes
 
-// ======================
-// ADMIN ROUTES
-// ======================
+// ── ADMIN ROUTES ─────────────────────────────────
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminDealRoutes);
 app.use("/api/admin", adminOrderRoutes);
@@ -120,9 +102,7 @@ app.use((req, res) => {
   });
 });
 
-// ======================
-// Expired order cleanup job (every 5 min)
-// ======================
+// ── Expired order cleanup (every 5 min) ──────────
 const startExpiredOrderCleanupJob = () => {
   const intervalMs = 5 * 60 * 1000;
 

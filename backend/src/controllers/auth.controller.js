@@ -14,16 +14,18 @@ const buildUserResponse = (user) => ({
   isAdmin: user.isAdmin,
 });
 
-// ── Email transporter ──────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// ✅ Lazy transporter — function call hone par banta hai
+// Is tarah .env values properly load ho chuki hoti hain
+const getTransporter = () =>
+  nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
 
-// ── OTP generator (6 digit) ────────────────────────────────────
+// OTP generator (6 digit)
 const generateOtp = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -102,7 +104,6 @@ export const loginUser = async (req, res) => {
 
 // ══════════════════════════════════════════════════════════════
 // POST /api/auth/forgot-password
-// Email check karo — agar milti hai toh OTP bhejo
 // ══════════════════════════════════════════════════════════════
 export const forgotPassword = async (req, res) => {
   try {
@@ -113,25 +114,23 @@ export const forgotPassword = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    // DB mein email dhundho
     const user = await User.findOne({ email: cleanEmail });
     if (!user) {
       return res.status(404).json({ message: "No account found with this email address" });
     }
 
-    // Purana OTP delete karo (agar tha)
+    // Purana OTP delete karo
     await OtpToken.deleteMany({ email: cleanEmail });
 
-    // Naya 6 digit OTP banao
+    // Naya OTP banao
     const otp = generateOtp();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minute
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // OTP hash karke save karo
     const hashedOtp = await bcrypt.hash(otp, 10);
     await OtpToken.create({ email: cleanEmail, otp: hashedOtp, expiresAt });
 
-    // Email bhejo
-    await transporter.sendMail({
+    // ✅ getTransporter() use kar rahe hain — credentials ab ready hain
+    await getTransporter().sendMail({
       from: `"Web Store" <${process.env.EMAIL_USER}>`,
       to: cleanEmail,
       subject: "Your Password Reset OTP",
@@ -156,7 +155,6 @@ export const forgotPassword = async (req, res) => {
 
 // ══════════════════════════════════════════════════════════════
 // POST /api/auth/verify-otp
-// OTP verify karo
 // ══════════════════════════════════════════════════════════════
 export const verifyOtp = async (req, res) => {
   try {
@@ -173,13 +171,11 @@ export const verifyOtp = async (req, res) => {
       return res.status(400).json({ message: "OTP expired or not found. Please try again." });
     }
 
-    // Expiry check
     if (new Date() > record.expiresAt) {
       await OtpToken.deleteMany({ email: cleanEmail });
       return res.status(400).json({ message: "OTP has expired. Please request a new one." });
     }
 
-    // OTP match karo
     const isMatch = await bcrypt.compare(otp, record.otp);
     if (!isMatch) {
       return res.status(400).json({ message: "Incorrect OTP. Please try again." });
@@ -194,7 +190,6 @@ export const verifyOtp = async (req, res) => {
 
 // ══════════════════════════════════════════════════════════════
 // POST /api/auth/reset-password
-// Naya password set karo
 // ══════════════════════════════════════════════════════════════
 export const resetPassword = async (req, res) => {
   try {
@@ -229,7 +224,7 @@ export const resetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await User.updateOne({ email: cleanEmail }, { password: hashedPassword });
 
-    // OTP delete karo — ek baar use ho gaya
+    // OTP delete karo
     await OtpToken.deleteMany({ email: cleanEmail });
 
     return res.json({ message: "Password reset successfully. Please login." });

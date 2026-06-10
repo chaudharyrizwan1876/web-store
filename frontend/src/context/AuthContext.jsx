@@ -1,10 +1,7 @@
-// frontend/src/context/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const AuthContext = createContext(null);
 
-// ✅ Token memory mein rakho — XSS se protect
-// (localStorage ki jagah sessionStorage + memory use ho raha hai)
 let _memoryToken = null;
 
 export const tokenStore = {
@@ -18,7 +15,6 @@ export const tokenStore = {
       const t = sessionStorage.getItem("token");
       if (t) { _memoryToken = t; return t; }
     } catch (_) {}
-    // Purana localStorage migrate karo (ek baar)
     try {
       const t = localStorage.getItem("token");
       if (t) {
@@ -40,7 +36,6 @@ export const tokenStore = {
 const USER_KEY = "user";
 
 export const AuthProvider = ({ children }) => {
-  // Token memory se lo (page reload pe sessionStorage fallback)
   const [token, setToken] = useState(() => tokenStore.get() || "");
 
   const [user, setUser] = useState(() => {
@@ -53,18 +48,16 @@ export const AuthProvider = ({ children }) => {
   const isAuthed = !!token;
   const isAdmin = !!user?.isAdmin;
 
-  // Token sync — memory + sessionStorage
   useEffect(() => {
     if (token) tokenStore.set(token);
     else tokenStore.clear();
   }, [token]);
 
-  // User sync — sessionStorage mein rakho
   useEffect(() => {
     try {
       if (user) {
         sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-        localStorage.removeItem(USER_KEY); // purana saaf karo
+        localStorage.removeItem(USER_KEY);
       } else {
         sessionStorage.removeItem(USER_KEY);
         localStorage.removeItem(USER_KEY);
@@ -72,8 +65,6 @@ export const AuthProvider = ({ children }) => {
     } catch (_) {}
   }, [user]);
 
-  // Login — do tarike kaam karta hai:
-  // login({ token, user })  ya  login(user, token)
   const login = (arg1, arg2) => {
     if (arg1 && typeof arg1 === "object" && arg1.token) {
       setToken(arg1.token);
@@ -93,9 +84,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // ✅ Profile update ke baad user state refresh karo
+  const updateUser = (updatedUser) => {
+    setUser((prev) => ({ ...prev, ...updatedUser }));
+  };
+
   const requireAdmin = () => isAuthed && isAdmin;
 
-  // Tabs sync (doosre tab mein logout ho to is tab mein bhi ho)
   useEffect(() => {
     const onStorage = (e) => {
       if (e.key === "token") {
@@ -115,7 +110,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const value = useMemo(
-    () => ({ token, user, isAuthed, isAdmin, login, logout, requireAdmin }),
+    () => ({ token, user, isAuthed, isAdmin, login, logout, updateUser, requireAdmin }),
     [token, user, isAuthed, isAdmin]
   );
 
