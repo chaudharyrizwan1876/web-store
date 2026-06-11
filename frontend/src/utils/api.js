@@ -1,54 +1,29 @@
-// frontend/src/utils/api.js
-
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// ✅ Token memory mein rakho (XSS se protect)
-// localStorage se bhi read karta hai backward compatibility ke liye
-let _memoryToken = null;
+// ✅ Token lene ka function — sessionStorage + localStorage fallback
+const getToken = () => {
+  // 1. sessionStorage se lo (naya system)
+  try {
+    const t = sessionStorage.getItem("token");
+    if (t) return t;
+  } catch (_) {}
 
-export const tokenStore = {
-  set(token) {
-    _memoryToken = token;
-    // Optional: session ke liye sessionStorage use karo (tab close pe clear)
-    // localStorage se behtar hai lekin httpOnly cookie se km secure
-    try {
-      sessionStorage.setItem("token", token);
-    } catch (_) {}
-  },
+  // 2. localStorage fallback (purana system — migrate karo)
+  try {
+    const t = localStorage.getItem("token");
+    if (t) {
+      // localStorage se sessionStorage mein migrate karo
+      sessionStorage.setItem("token", t);
+      localStorage.removeItem("token");
+      return t;
+    }
+  } catch (_) {}
 
-  get() {
-    if (_memoryToken) return _memoryToken;
-    // Fallback: agar page reload hua to sessionStorage se lo
-    try {
-      const t = sessionStorage.getItem("token");
-      if (t) {
-        _memoryToken = t;
-        return t;
-      }
-    } catch (_) {}
-    // Last fallback: purana localStorage (migrate karo)
-    try {
-      const t = localStorage.getItem("token");
-      if (t) {
-        _memoryToken = t;
-        // localStorage se hata do, sessionStorage pe migrate karo
-        sessionStorage.setItem("token", t);
-        localStorage.removeItem("token");
-        return t;
-      }
-    } catch (_) {}
-    return null;
-  },
-
-  clear() {
-    _memoryToken = null;
-    try { sessionStorage.removeItem("token"); } catch (_) {}
-    try { localStorage.removeItem("token"); } catch (_) {}
-  },
+  return null;
 };
 
 export const apiFetch = async (path, options = {}) => {
-  const token = tokenStore.get();
+  const token = getToken();
 
   const headers = { ...(options.headers || {}) };
 
