@@ -1,8 +1,83 @@
+import nodemailer from "nodemailer";
 import Order from "../models/Order.js";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
 
 const money = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+// ✅ Lazy transporter — .env values properly load hone ke baad banta hai
+const getTransporter = () =>
+  nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+// ✅ Order confirmation email — kabhi fail ho to order placement pe asar na pade
+const sendOrderConfirmationEmail = async (user, order) => {
+  try {
+    const itemsRows = (order.items || [])
+      .map(
+        (it) => `
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #F3F4F6;">
+            <div style="font-weight:600;color:#111827;font-size:13px;">${it.name}</div>
+            <div style="color:#6B7280;font-size:12px;margin-top:2px;">Qty: ${it.qty}</div>
+          </td>
+          <td style="padding:10px 0;border-bottom:1px solid #F3F4F6;text-align:right;font-weight:700;color:#111827;font-size:13px;">
+            $${(it.price * it.qty).toFixed(2)}
+          </td>
+        </tr>`
+      )
+      .join("");
+
+    await getTransporter().sendMail({
+      from: `"Web Store" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: `Order Confirmed — #${String(order._id).slice(-8).toUpperCase()}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #f9f9f9; border-radius: 12px;">
+          <h2 style="color: #1a1a2e; margin-bottom: 4px;">Thank you for your order! 🎉</h2>
+          <p style="color: #555; font-size: 14px; margin-top: 0;">
+            Hi ${user.firstName || "there"}, your order has been placed successfully.
+          </p>
+
+          <div style="background:#fff;border-radius:10px;padding:16px;margin-top:16px;border:1px solid #E5E7EB;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#6B7280;margin-bottom:12px;">
+              <span>Order ID: <b style="color:#111827;">#${String(order._id).slice(-8).toUpperCase()}</b></span>
+              <span>Payment: <b style="color:#111827;">${order.paymentMethod}</b></span>
+            </div>
+
+            <table style="width:100%;border-collapse:collapse;">
+              ${itemsRows}
+            </table>
+
+            <div style="margin-top:14px;padding-top:12px;border-top:1px solid #E5E7EB;">
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#6B7280;">
+                <span>Subtotal</span><span>$${Number(order.subtotal).toFixed(2)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#6B7280;margin-top:4px;">
+                <span>Shipping</span><span>$${Number(order.shipping).toFixed(2)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:#111827;margin-top:10px;">
+                <span>Total</span><span>$${Number(order.total).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <p style="color:#999;font-size:12px;margin-top:20px;">
+            We'll notify you again once your order ships. If you have any questions, just reply to this email.
+          </p>
+        </div>
+      `,
+    });
+  } catch (err) {
+    // Email fail hone se order placement fail nahi hona chahiye
+    console.error("ORDER CONFIRMATION EMAIL ERROR:", err.message);
+  }
+};
 
 // ✅ cart item se productId safely nikaalna (different shapes handle)
 const getCartProductId = (c) => {
@@ -117,6 +192,9 @@ export const placeOrder = async (req, res) => {
 
     user.cart = [];
     await user.save();
+
+    // ✅ Order confirmation email (background — order response ka wait nahi karta)
+    sendOrderConfirmationEmail(user, order);
 
     return res.status(201).json({ message: "Order placed", order });
   } catch (err) {
