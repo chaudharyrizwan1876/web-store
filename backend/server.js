@@ -21,6 +21,7 @@ import adminOrderRoutes from "./src/routes/admin.order.routes.js";
 import adminProductRoutes from "./src/routes/admin.product.routes.js";
 import inquiryRoutes from "./src/routes/inquiry.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
+import wishlistRoutes from "./src/routes/wishlist.routes.js";
 
 import { protect } from "./src/middleware/authMiddleware.js";
 import { globalLimiter, authLimiter } from "./src/middleware/rateLimiter.js";
@@ -83,6 +84,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/supplier-inquiry", inquiryRoutes);
 app.use("/api/user", userRoutes);          // ✅ Profile routes
+app.use("/api/wishlist", wishlistRoutes);  // ✅ Wishlist routes
 
 // ── ADMIN ROUTES ─────────────────────────────────
 app.use("/api/admin", adminRoutes);

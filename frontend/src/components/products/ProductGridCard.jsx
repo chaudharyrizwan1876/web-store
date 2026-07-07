@@ -1,11 +1,23 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useWishlist } from "../../context/WishlistContext";
 
 const ProductGridCard = ({ item }) => {
   const navigate = useNavigate();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+
+  const inWishlist = isInWishlist(item.id);
 
   const goDetails = () => {
     if (item?.id) navigate(`/product/${item.id}`);
+  };
+
+  const handleWishlistClick = async (e) => {
+    e.stopPropagation();
+    const result = await toggleWishlist(item.id);
+    if (result?.needsAuth) {
+      navigate("/auth");
+    }
   };
 
   return (
@@ -63,22 +75,25 @@ const ProductGridCard = ({ item }) => {
         </div>
 
         <button
-          onClick={(e) => e.stopPropagation()}
+          onClick={handleWishlistClick}
           style={{
             width: "32px",
             height: "32px",
-            border: "1px solid #E5E7EB",
+            border: inWishlist ? "1px solid #FCA5A5" : "1px solid #E5E7EB",
             borderRadius: "8px",
-            background: "#fff",
+            background: inWishlist ? "#FEF2F2" : "#fff",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            transition: "all 0.15s ease",
           }}
-          aria-label="wishlist"
-          title="wishlist"
+          aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          title={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <span style={{ color: "#2563EB", fontSize: "18px" }}>♡</span>
+          <span style={{ color: inWishlist ? "#EF4444" : "#2563EB", fontSize: "18px" }}>
+            {inWishlist ? "♥" : "♡"}
+          </span>
         </button>
       </div>
 

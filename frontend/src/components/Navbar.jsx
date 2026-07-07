@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useWishlist } from "../context/WishlistContext";
 import ProfileModal from "./ProfileModal";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthed, isAdmin, user, logout } = useAuth();
+  const { wishlistCount } = useWishlist();
 
   const [openProfile, setOpenProfile] = useState(false);
   const [openAdmin, setOpenAdmin] = useState(false);
@@ -194,10 +196,21 @@ const Navbar = () => {
               </div>
             </div>
 
+            {/* WISHLIST */}
+            <div style={styles.menuItem}>
+              <div onClick={() => goAuthed("/wishlist")} style={{ ...styles.clickableMenu, position: "relative" }}>
+                <span style={styles.icon}>♡</span>
+                {wishlistCount > 0 && (
+                  <span style={styles.badge}>{wishlistCount > 9 ? "9+" : wishlistCount}</span>
+                )}
+                <p style={styles.menuText}>Wishlist</p>
+              </div>
+            </div>
+
             {/* ORDERS */}
             <div style={styles.menuItem}>
               <div onClick={() => goAuthed("/my-orders")} style={styles.clickableMenu}>
-                <span style={styles.icon}>❤️</span>
+                <span style={styles.icon}>📦</span>
                 <p style={styles.menuText}>Orders</p>
               </div>
             </div>
@@ -244,6 +257,22 @@ const styles = {
   menuItem: { textAlign: "center" },
   clickableMenu: { cursor: "pointer", userSelect: "none" },
   icon: { fontSize: "18px", color: "#777", display: "block" },
+  badge: {
+    position: "absolute",
+    top: "-6px",
+    right: "6px",
+    background: "#EF4444",
+    color: "#fff",
+    fontSize: "9px",
+    fontWeight: "800",
+    borderRadius: "999px",
+    minWidth: "16px",
+    height: "16px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0 3px",
+  },
   menuText: { fontSize: "10px", color: "#777", margin: 0, marginTop: "2px" },
 
   // ✅ Avatar initials circle in navbar

@@ -59,6 +59,14 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+
+    // ✅ WISHLIST — array of Product IDs
+    wishlist: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -9,6 +9,7 @@ import ProductDetailsPage from "./pages/ProductDetailsPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
+import WishlistPage from "./pages/WishlistPage";
 
 import AuthPage from "./pages/AuthPage";
 
@@ -54,6 +55,7 @@ const App = () => {
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="order-success/:id" element={<OrderSuccessPage />} />
           <Route path="my-orders" element={<MyOrdersPage />} />
+          <Route path="wishlist" element={<WishlistPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,11 +1,23 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useWishlist } from "../../context/WishlistContext";
 
 const ProductListItem = ({ item }) => {
   const navigate = useNavigate();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+
+  const inWishlist = isInWishlist(item.id);
 
   const goDetails = () => {
     if (item?.id) navigate(`/product/${item.id}`);
+  };
+
+  const handleWishlistClick = async (e) => {
+    e.stopPropagation();
+    const result = await toggleWishlist(item.id);
+    if (result?.needsAuth) {
+      navigate("/auth");
+    }
   };
 
   return (
@@ -108,22 +120,25 @@ const ProductListItem = ({ item }) => {
       {/* Right wishlist button */}
       <div style={{ alignSelf: "flex-start" }}>
         <button
-          onClick={(e) => e.stopPropagation()}
+          onClick={handleWishlistClick}
           style={{
             width: "36px",
             height: "36px",
-            border: "1px solid #E5E7EB",
+            border: inWishlist ? "1px solid #FCA5A5" : "1px solid #E5E7EB",
             borderRadius: "8px",
-            background: "#FFFFFF",
+            background: inWishlist ? "#FEF2F2" : "#FFFFFF",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            transition: "all 0.15s ease",
           }}
-          aria-label="Add to wishlist"
-          title="Add to wishlist"
+          aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          title={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <span style={{ fontSize: "18px", color: "#2563EB" }}>♡</span>
+          <span style={{ fontSize: "18px", color: inWishlist ? "#EF4444" : "#2563EB" }}>
+            {inWishlist ? "♥" : "♡"}
+          </span>
         </button>
       </div>
     </div>

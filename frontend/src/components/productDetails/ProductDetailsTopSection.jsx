@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
 import { resolveProductImages } from "../../utils/productImages";
+import { useWishlist } from "../../context/WishlistContext";
 
 // Fallback images (UI break na ho)
 import mainImg from "../../assets/images/pd_main_tshirt.jpg";
@@ -12,6 +14,9 @@ import t5 from "../../assets/images/pd_thumb_5.jpg";
 import t6 from "../../assets/images/pd_thumb_6.jpg";
 
 const ProductDetailsTopSection = ({ product }) => {
+  const navigate = useNavigate();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+
   const fallbackThumbs = useMemo(() => [t1, t2, t3, t4, t5, t6], []);
 
   const productImages = useMemo(() => {
@@ -48,6 +53,20 @@ const ProductDetailsTopSection = ({ product }) => {
   const inStock = hasStockField ? availableStock > 0 : true;
 
   const mainPrice = typeof product?.price === "number" ? product.price : 98;
+
+  // ✅ Wishlist state
+  const inWishlist = product?._id ? isInWishlist(product._id) : false;
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
+  const handleWishlistClick = async () => {
+    if (!product?._id) return;
+    setWishlistLoading(true);
+    const result = await toggleWishlist(product._id);
+    setWishlistLoading(false);
+    if (result?.needsAuth) {
+      navigate("/auth");
+    }
+  };
 
   const priceTiers = useMemo(() => {
     const p1 = mainPrice;
@@ -144,9 +163,38 @@ const ProductDetailsTopSection = ({ product }) => {
             justifyContent: "center",
             background: "#fff",
             boxSizing: "border-box",
+            position: "relative",
           }}
         >
           <img src={active} alt={title} style={{ width: "320px", height: "320px", objectFit: "contain" }} />
+
+          {/* ✅ Wishlist heart on image (top-right) */}
+          <button
+            onClick={handleWishlistClick}
+            disabled={wishlistLoading}
+            style={{
+              position: "absolute",
+              top: "10px",
+              right: "10px",
+              width: "38px",
+              height: "38px",
+              border: inWishlist ? "1px solid #FCA5A5" : "1px solid #E5E7EB",
+              borderRadius: "50%",
+              background: inWishlist ? "#FEF2F2" : "#fff",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+              transition: "all 0.15s ease",
+            }}
+            aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+            title={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          >
+            <span style={{ fontSize: "19px", color: inWishlist ? "#EF4444" : "#6B7280" }}>
+              {inWishlist ? "♥" : "♡"}
+            </span>
+          </button>
         </div>
 
         {/* thumbnails row */}
@@ -399,9 +447,25 @@ const ProductDetailsTopSection = ({ product }) => {
           Seller&apos;s profile
         </button>
 
-        <div style={{ marginTop: "14px", textAlign: "center", color: "#2563EB", fontSize: "12px" }}>
-          ♡ Save for later
-        </div>
+        {/* ✅ Functional Save for later / wishlist button */}
+        <button
+          onClick={handleWishlistClick}
+          disabled={wishlistLoading}
+          style={{
+            width: "100%",
+            marginTop: "14px",
+            textAlign: "center",
+            color: inWishlist ? "#EF4444" : "#2563EB",
+            fontSize: "12px",
+            fontWeight: 700,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "6px",
+          }}
+        >
+          {inWishlist ? "♥ Saved to wishlist" : "♡ Save for later"}
+        </button>
       </div>
     </div>
   );
