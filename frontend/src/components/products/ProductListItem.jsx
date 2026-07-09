@@ -1,12 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useWishlist } from "../../context/WishlistContext";
+import StockBadge from "./StockBadge";
 
 const ProductListItem = ({ item }) => {
   const navigate = useNavigate();
   const { isInWishlist, toggleWishlist } = useWishlist();
 
   const inWishlist = isInWishlist(item.id);
+  const isOutOfStock = item.stock !== null && item.stock !== undefined && item.stock <= 0;
 
   const goDetails = () => {
     if (item?.id) navigate(`/product/${item.id}`);
@@ -36,6 +38,7 @@ const ProductListItem = ({ item }) => {
         boxSizing: "border-box",
         marginBottom: "14px",
         cursor: "pointer",
+        opacity: isOutOfStock ? 0.7 : 1,
       }}
     >
       {/* Left image */}
@@ -47,6 +50,7 @@ const ProductListItem = ({ item }) => {
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
+          position: "relative",
         }}
       >
         <img
@@ -58,6 +62,11 @@ const ProductListItem = ({ item }) => {
             objectFit: "contain",
           }}
         />
+
+        {/* ✅ Stock badge top-left of image */}
+        <div style={{ position: "absolute", top: 0, left: 0 }}>
+          <StockBadge stock={item.stock} />
+        </div>
       </div>
 
       {/* Middle content */}

@@ -211,6 +211,7 @@ const ProductsPage = () => {
       orders: p.numReviews || 0,
       desc: p.description || "",
       image: resolveProductImage(p.images?.[0], prodHeadphones),
+      stock: typeof p.stock === "number" ? p.stock : null, // ✅ stock badge ke liye
     }));
   }, [pageProducts]);
 
@@ -223,6 +224,7 @@ const ProductsPage = () => {
       rating: p.rating || 0,
       short: p.category || "Product",
       image: resolveProductImage(p.images?.[0], gridPhoneRed),
+      stock: typeof p.stock === "number" ? p.stock : null, // ✅ stock badge ke liye
     }));
   }, [pageProducts]);
 

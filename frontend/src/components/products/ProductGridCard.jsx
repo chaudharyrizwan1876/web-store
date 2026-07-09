@@ -1,12 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useWishlist } from "../../context/WishlistContext";
+import StockBadge from "./StockBadge";
 
 const ProductGridCard = ({ item }) => {
   const navigate = useNavigate();
   const { isInWishlist, toggleWishlist } = useWishlist();
 
   const inWishlist = isInWishlist(item.id);
+  const isOutOfStock = item.stock !== null && item.stock !== undefined && item.stock <= 0;
 
   const goDetails = () => {
     if (item?.id) navigate(`/product/${item.id}`);
@@ -34,6 +36,8 @@ const ProductGridCard = ({ item }) => {
         display: "flex",
         flexDirection: "column",
         cursor: "pointer",
+        position: "relative",
+        opacity: isOutOfStock ? 0.7 : 1,
       }}
     >
       {/* Image */}
@@ -44,6 +48,7 @@ const ProductGridCard = ({ item }) => {
           alignItems: "center",
           justifyContent: "center",
           marginBottom: "10px",
+          position: "relative",
         }}
       >
         <img
@@ -51,6 +56,11 @@ const ProductGridCard = ({ item }) => {
           alt={item.title}
           style={{ width: "170px", height: "170px", objectFit: "contain" }}
         />
+
+        {/* ✅ Stock badge top-left of image */}
+        <div style={{ position: "absolute", top: 0, left: 0 }}>
+          <StockBadge stock={item.stock} />
+        </div>
       </div>
 
       {/* Price row + heart */}

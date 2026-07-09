@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
 import { resolveProductImages } from "../../utils/productImages";
 import { useWishlist } from "../../context/WishlistContext";
+import StockBadge from "../products/StockBadge";
 
 // Fallback images (UI break na ho)
 import mainImg from "../../assets/images/pd_main_tshirt.jpg";
@@ -239,6 +240,8 @@ const ProductDetailsTopSection = ({ product }) => {
               Available: {availableStock}
             </span>
           )}
+
+          <StockBadge stock={hasStockField ? availableStock : null} />
         </div>
 
         {/* Title */}
