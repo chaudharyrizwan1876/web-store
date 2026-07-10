@@ -11,7 +11,6 @@ const Navbar = () => {
   const { wishlistCount } = useWishlist();
 
   const [openProfile, setOpenProfile] = useState(false);
-  const [openAdmin, setOpenAdmin] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   const queryState = useMemo(() => {
@@ -36,7 +35,6 @@ const Navbar = () => {
 
   const go = (path) => {
     setOpenProfile(false);
-    setOpenAdmin(false);
     navigate(path);
   };
 
@@ -48,18 +46,11 @@ const Navbar = () => {
   const onProfileClick = () => {
     if (!isAuthed) return navigate("/auth");
     setOpenProfile((v) => !v);
-    setOpenAdmin(false);
-  };
-
-  const onAdminClick = () => {
-    setOpenAdmin((v) => !v);
-    setOpenProfile(false);
   };
 
   const handleLogout = () => {
     logout();
     setOpenProfile(false);
-    setOpenAdmin(false);
     navigate("/auth");
   };
 
@@ -116,21 +107,13 @@ const Navbar = () => {
 
           {/* RIGHT GROUP */}
           <div style={styles.rightMenu}>
-            {/* ADMIN */}
+            {/* ✅ ADMIN — single link, straight to dashboard (no dropdown) */}
             {isAuthed && isAdmin && (
-              <div style={{ ...styles.menuItem, position: "relative" }}>
-                <div onClick={onAdminClick} style={styles.clickableMenu} role="button" tabIndex={0}>
+              <div style={styles.menuItem}>
+                <div onClick={() => go("/admin/dashboard")} style={styles.clickableMenu} role="button" tabIndex={0}>
                   <span style={styles.icon}>🛠️</span>
                   <p style={styles.menuText}>Admin</p>
                 </div>
-                {openAdmin && (
-                  <div style={styles.adminDropdown}>
-                    <p style={styles.dropdownTitle}>Admin Panel</p>
-                    <button type="button" onClick={() => go("/admin/dashboard")} style={styles.dropdownBtn}>Dashboard</button>
-                    <button type="button" onClick={() => go("/admin/orders")} style={styles.dropdownBtn}>Manage Orders</button>
-                    <button type="button" onClick={() => go("/admin/products")} style={styles.dropdownBtn}>Manage Products</button>
-                  </div>
-                )}
               </div>
             )}
 
@@ -225,9 +208,9 @@ const Navbar = () => {
           </div>
         </div>
 
-        {(openProfile || openAdmin) && (
+        {openProfile && (
           <div
-            onClick={() => { setOpenProfile(false); setOpenAdmin(false); }}
+            onClick={() => setOpenProfile(false)}
             style={styles.backdrop}
           />
         )}
@@ -291,7 +274,6 @@ const styles = {
     letterSpacing: "0.5px",
   },
 
-  adminDropdown: { position: "absolute", top: "52px", right: "-18px", width: "220px", background: "#fff", border: "1px solid #eaeaea", borderRadius: "12px", boxShadow: "0 10px 24px rgba(0,0,0,0.12)", padding: "12px", zIndex: 60 },
   profileDropdown: { position: "absolute", top: "52px", right: "-24px", width: "270px", background: "#fff", border: "1px solid #eaeaea", borderRadius: "14px", boxShadow: "0 12px 32px rgba(0,0,0,0.13)", padding: "14px", zIndex: 60 },
 
   // Dropdown header with avatar
@@ -305,8 +287,6 @@ const styles = {
   dropdownName: { margin: 0, fontWeight: "700", fontSize: "14px", color: "#111" },
   dropdownEmail: { margin: "2px 0 0", fontSize: "11.5px", color: "#888" },
 
-  dropdownTitle: { margin: 0, fontSize: "14px", fontWeight: "700", marginBottom: "6px" },
-  dropdownBtn: { width: "100%", padding: "10px 12px", borderRadius: "10px", border: "1px solid #E5E7EB", background: "#fff", cursor: "pointer", fontWeight: "800", textAlign: "left", marginTop: "8px" },
   profileRow: { display: "flex", justifyContent: "space-between", gap: "10px", padding: "5px 0" },
   profileLabel: { fontSize: "12px", color: "#888" },
   profileValue: { fontSize: "12px", color: "#222", fontWeight: "600", textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 },

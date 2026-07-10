@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import CheckoutLayout from "./layouts/CheckoutLayout";
+import AdminLayout from "./layouts/AdminLayout";
 
 import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
@@ -41,12 +42,14 @@ const App = () => {
           <Route path="gift-projects" element={<GiftProjectsPage />} />
           <Route path="menu-item" element={<MenuItemPage />} />
           <Route path="help" element={<HelpPage />} />
+        </Route>
 
-          {/* ✅ admin routes */}
-          <Route element={<AdminRoute />}>
-            <Route path="admin/dashboard" element={<AdminDashboardPage />} />
-            <Route path="admin/orders" element={<AdminOrdersPage />} />
-            <Route path="admin/products" element={<AdminProductsPage />} />
+        {/* ✅ ADMIN — separate full-screen layout with sidebar (no store navbar/footer) */}
+        <Route element={<AdminRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboardPage />} />
+            <Route path="orders" element={<AdminOrdersPage />} />
+            <Route path="products" element={<AdminProductsPage />} />
           </Route>
         </Route>
 
