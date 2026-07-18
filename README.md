@@ -40,7 +40,7 @@ A modern, full-featured e-commerce web application built with the **MERN stack**
 
 ## 📌 About the Project
 
-**Web Store** is a full-stack e-commerce platform built from the ground up with a focus on real-world production practices — secure authentication, role-based access control, atomic inventory management, automated email notifications, and a fully-featured admin panel with live analytics.
+**Web Store** is a full-stack e-commerce platform built from the ground up with a focus on real-world production practices secure authentication, role-based access control, atomic inventory management, automated email notifications, and a fullyfeatured admin panel with live analytics.
 
 The project is structured as two independently deployable services:
 
