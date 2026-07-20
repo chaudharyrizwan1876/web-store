@@ -232,7 +232,7 @@ const styles = {
   logoBox: { backgroundColor: "#e8f0ff", padding: "8px", borderRadius: "8px" },
   logoIcon: { fontSize: "20px" },
   brandText: { color: "#4a7bff", margin: 0, fontWeight: "600" },
-  searchSection: { width: "665px", height: "40px", display: "flex", border: "2px solid #4a7bff", borderRadius: "6px", overflow: "hidden" },
+  searchSection: { width: "480px", height: "40px", display: "flex", border: "2px solid #4a7bff", borderRadius: "6px", overflow: "hidden" },
   searchInput: { flex: 1, padding: "0 10px", border: "none", outline: "none", fontSize: "14px" },
   clearBtn: { border: "none", borderLeft: "1px solid #e5e5e5", background: "#fff", padding: "0 12px", cursor: "pointer", fontWeight: "700", color: "#111" },
   searchBtn: { backgroundColor: "#0066ff", color: "#ffffff", border: "none", padding: "0 16px", cursor: "pointer", fontWeight: "600" },
